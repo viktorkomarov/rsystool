@@ -37,6 +37,7 @@ var priorityName = map[string]Priority{
 }
 
 func PriorityParse(priority string) Priority {
+	// check ([!]=)|(!)
 	if isContainOnlyDigit(priority) {
 		num, err := strconv.Atoi(priority)
 		if err != nil {
