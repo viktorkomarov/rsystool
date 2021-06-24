@@ -22,7 +22,6 @@ const (
 func ParseSelector(line string) (Selector, error) {
 	stateMachine := fsm.NewFSM(from, []fsm.EventDesc{
 		{Name: from, Src: []string{from}, Dst: facility},
-		{Name: ",", Src: []string{facility}, Dst: facility},
 		{Name: ".", Src: []string{facility}, Dst: priority},
 		{Name: ";", Src: []string{facility}, Dst: priority},
 		{Name: "", Src: []string{priority}, Dst: terminal},

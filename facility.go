@@ -55,6 +55,7 @@ var facilityByName = map[string]Facility{
 }
 
 func FacilityParse(facility string) Facility {
+	// check facility,facility
 	if isContainOnlyDigit(facility) {
 		num, err := strconv.Atoi(facility)
 		if err != nil {
