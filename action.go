@@ -8,13 +8,9 @@ const (
 	Terminal
 	RemoteMachine
 	ListOfUser
+	UnknownAction
 )
 
-type Action struct {
-	Type    ActionType
-	Payload string
-}
-
-func ActionParse(action string) Action {
-	return Action{}
+func ActionParse(action string) (ActionType, string) {
+	return UnknownAction, ""
 }
