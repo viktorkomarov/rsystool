@@ -10,11 +10,6 @@ const (
 	ObsoleteLegacy
 )
 
-type Selector struct {
-	Facility string // insensetive
-	Priority string // insensetive
-}
-
 func isContainOnlyDigit(str string) bool {
 	for _, r := range str {
 		if !unicode.IsDigit(r) {

@@ -4,34 +4,34 @@ import (
 	"strconv"
 )
 
-type FacilityKeyword int
+type Facility int
 
 const (
-	Kern         FacilityKeyword = iota << 3
-	User         FacilityKeyword = iota << 3
-	Mail         FacilityKeyword = iota << 3
-	Daemon       FacilityKeyword = iota << 3
-	Auth         FacilityKeyword = iota << 3
-	Syslog       FacilityKeyword = iota << 3
-	Lpr          FacilityKeyword = iota << 3
-	News         FacilityKeyword = iota << 3
-	Uucp         FacilityKeyword = iota << 3
-	Cron         FacilityKeyword = iota << 3
-	AuthPriv     FacilityKeyword = iota << 3
-	Ftp          FacilityKeyword = iota << 3
-	Local0       FacilityKeyword = iota << 3
-	Local1       FacilityKeyword = iota << 3
-	Local2       FacilityKeyword = iota << 3
-	Local3       FacilityKeyword = iota << 3
-	Local4       FacilityKeyword = iota << 3
-	Local5       FacilityKeyword = iota << 3
-	Local6       FacilityKeyword = iota << 3
-	Local7       FacilityKeyword = iota << 3
-	NoneFacility FacilityKeyword = -1
-	AllFacility  FacilityKeyword = -2
+	Kern         Facility = iota << 3
+	User         Facility = iota << 3
+	Mail         Facility = iota << 3
+	Daemon       Facility = iota << 3
+	Auth         Facility = iota << 3
+	Syslog       Facility = iota << 3
+	Lpr          Facility = iota << 3
+	News         Facility = iota << 3
+	Uucp         Facility = iota << 3
+	Cron         Facility = iota << 3
+	AuthPriv     Facility = iota << 3
+	Ftp          Facility = iota << 3
+	Local0       Facility = iota << 3
+	Local1       Facility = iota << 3
+	Local2       Facility = iota << 3
+	Local3       Facility = iota << 3
+	Local4       Facility = iota << 3
+	Local5       Facility = iota << 3
+	Local6       Facility = iota << 3
+	Local7       Facility = iota << 3
+	NoneFacility Facility = -1
+	AllFacility  Facility = -2
 )
 
-var facilityOneOf = map[FacilityKeyword]bool{
+var facilityOneOf = map[Facility]bool{
 	Kern: true, User: true, Mail: true,
 	Daemon: true, Auth: true, Syslog: true,
 	Lpr: true, News: true, Uucp: true,
@@ -41,7 +41,7 @@ var facilityOneOf = map[FacilityKeyword]bool{
 	Local6: true, Local7: true,
 }
 
-var facilityByName = map[string]FacilityKeyword{
+var facilityByName = map[string]Facility{
 	"auth": Auth, "authpriv": AuthPriv,
 	"cron": Cron, "daemon": Daemon,
 	"ftp": Ftp, "kern": Kern, "lpr": Lpr,
@@ -54,14 +54,14 @@ var facilityByName = map[string]FacilityKeyword{
 	"local7": Local7, "*": AllFacility,
 }
 
-func FacilityParse(facility string) FacilityKeyword {
+func FacilityParse(facility string) Facility {
 	if isContainOnlyDigit(facility) {
 		num, err := strconv.Atoi(facility)
 		if err != nil {
 			return NoneFacility
 		}
 
-		facility := FacilityKeyword(num)
+		facility := Facility(num)
 		if facilityOneOf[facility] {
 			return facility
 		}
