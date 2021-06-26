@@ -61,7 +61,7 @@ var facilityByName = map[string]Facility{
 }
 
 func facilitiesCopy() []Facility {
-	return []Facility{User, Mail, Daemon, Auth, Syslog, Lpr, News, Uucp, Cron, AuthPriv, Ftp,
+	return []Facility{Kern, User, Mail, Daemon, Auth, Syslog, Lpr, News, Uucp, Cron, AuthPriv, Ftp,
 		Local0, Local1, Local2, Local3, Local4, Local5, Local6, Local7}
 }
 

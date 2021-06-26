@@ -23,42 +23,51 @@ func (s *Selector) Parse(line string) error {
 		s.Facilities = make(map[Facility][]Priority)
 	}
 
-	for sep := strings.Index(line, ";"); sep != -1; {
-		current := line[:sep]
-
-		dot := strings.Index(current, ".")
-		if dot == -1 {
-			return fmt.Errorf("%w: %s", ErrIllegalSelector, line)
-		}
-
-		facilities, err := FacilityParse(current[:dot])
-		if err != nil {
+	for sep := strings.Index(line, ";"); sep != -1; sep = strings.Index(line, ";") {
+		if err := s.parse(line[:sep]); err != nil {
 			return err
 		}
 
-		policy, err := PriorityParse(current[dot+1:])
-		if err != nil {
-			return err
-		}
-
-		s.applyPolicy(facilities, policy)
 		line = line[sep+1:]
 	}
 
+	return s.parse(line)
+}
+
+func (s *Selector) parse(current string) error {
+	dot := strings.Index(current, ".")
+	if dot == -1 {
+		return fmt.Errorf("%w: %s", ErrIllegalSelector, current)
+	}
+
+	facilities, err := FacilityParse(current[:dot])
+	if err != nil {
+		return err
+	}
+
+	policy, err := PriorityParse(current[dot+1:])
+	if err != nil {
+		return err
+	}
+
+	s.applyPolicy(facilities, policy)
 	return nil
 }
 
 // can be !* or =* think about it
 func (s *Selector) applyPolicy(facilities []Facility, policy PriorityPolicy) {
+	fmt.Printf("%+v\n", s.Facilities)
 	if policy.Priority == None {
 		for _, fac := range facilities {
 			delete(s.Facilities, fac)
 		}
+
+		return
 	}
 
 	if policy.OnlyEqual && !policy.Negative {
 		for _, fac := range facilities {
-			s.Facilities[fac] = []Priority{policy.Priority}
+			s.Facilities[fac] = append(s.Facilities[fac], policy.Priority)
 		}
 
 		return
@@ -73,19 +82,19 @@ func (s *Selector) applyPolicy(facilities []Facility, policy PriorityPolicy) {
 	}
 
 	for _, fac := range facilities {
-		s.Facilities[fac] = collectPriorities(s.Facilities[fac], policy.Negative, policy.Priority)
+		s.Facilities[fac] = collectPriorities(s.Facilities[fac], policy)
 	}
 }
 
-func collectPriorities(existing []Priority, negative bool, priority Priority) []Priority {
-	if priority == AllPriority {
+func collectPriorities(existing []Priority, policy PriorityPolicy) []Priority {
+	if policy.Priority == AllPriority {
 		return prioritiesCopy()
 	}
 
-	if negative {
-		for i, p := range existing {
-			if p == priority {
-				return existing[:i]
+	if policy.Negative {
+		for i := len(existing) - 1; i >= 0; i-- {
+			if existing[i] == policy.Priority {
+				return existing[i+1:]
 			}
 		}
 
@@ -94,7 +103,7 @@ func collectPriorities(existing []Priority, negative bool, priority Priority) []
 
 	priorities := prioritiesCopy()
 	for i, prior := range priorities {
-		if prior == priority {
+		if prior == policy.Priority {
 			return priorities[:i+1]
 		}
 	}
@@ -104,9 +113,9 @@ func collectPriorities(existing []Priority, negative bool, priority Priority) []
 
 func excludePriority(priorities []Priority, p Priority) []Priority {
 	i := -1
-	for ; i < len(priorities); i++ {
-		if priorities[i] == p {
-			break
+	for j := 0; j < len(priorities); j++ {
+		if priorities[j] == p {
+			i = j
 		}
 	}
 
