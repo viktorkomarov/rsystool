@@ -1,6 +1,20 @@
 package main
 
-import "strconv"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
+
+var (
+	ErrIllegalPriority error = errors.New("illegal priority")
+)
+
+type PriorityPolicy struct {
+	Negative  bool
+	OnlyEqual bool
+	Priority  Priority
+}
 
 type Priority int
 
@@ -13,8 +27,8 @@ const (
 	Notice
 	Info
 	Debug
+	None
 	AllPriority
-	NonePriority
 )
 
 var priorityOneOf = map[Priority]bool{
@@ -33,28 +47,51 @@ var priorityName = map[string]Priority{
 	"warn":    Warning,
 	"warning": Warning,
 	"err":     Err,
+	"none":    None,
 	"*":       AllPriority,
 }
 
-func PriorityParse(priority string) Priority {
-	// check ([!]=)|(!)
-	if isContainOnlyDigit(priority) {
-		num, err := strconv.Atoi(priority)
+func prioritiesCopy() []Priority {
+	return []Priority{Emerg, Alert, Crit, Err, Warning, Notice, Info, Debug}
+}
+
+func PriorityParse(line string) (PriorityPolicy, error) {
+	negative := false
+	if line[0] == '!' {
+		line = line[1:]
+		negative = true
+	}
+
+	onlyEqual := false
+	if line[0] == '=' {
+		line = line[1:]
+		onlyEqual = true
+	}
+
+	var priority Priority
+	if isContainOnlyDigit(line) {
+		num, err := strconv.Atoi(line)
 		if err != nil {
-			return NonePriority
+			return PriorityPolicy{}, fmt.Errorf("%w: %s", ErrIllegalPriority, err)
 		}
 
-		prior := Priority(num)
-		if priorityOneOf[prior] {
-			return prior
+		p := Priority(num)
+		if !priorityOneOf[p] {
+			return PriorityPolicy{}, fmt.Errorf("%w: unknown %d", ErrIllegalPriority, num)
 		}
 
-		return NonePriority
+		priority = p
+	} else {
+		if p, ok := priorityName[line]; !ok {
+			return PriorityPolicy{}, fmt.Errorf("%w: unknown %s", ErrIllegalPriority, line)
+		} else {
+			priority = p
+		}
 	}
 
-	if p, ok := priorityName[priority]; ok {
-		return p
-	}
-
-	return NonePriority
+	return PriorityPolicy{
+		Negative:  negative,
+		OnlyEqual: onlyEqual,
+		Priority:  priority,
+	}, nil
 }

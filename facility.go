@@ -1,34 +1,40 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
+	"strings"
+)
+
+var (
+	ErrIllegalFacility error = errors.New("illegal facility")
 )
 
 type Facility int
 
 const (
-	Kern         Facility = iota << 3
-	User         Facility = iota << 3
-	Mail         Facility = iota << 3
-	Daemon       Facility = iota << 3
-	Auth         Facility = iota << 3
-	Syslog       Facility = iota << 3
-	Lpr          Facility = iota << 3
-	News         Facility = iota << 3
-	Uucp         Facility = iota << 3
-	Cron         Facility = iota << 3
-	AuthPriv     Facility = iota << 3
-	Ftp          Facility = iota << 3
-	Local0       Facility = iota << 3
-	Local1       Facility = iota << 3
-	Local2       Facility = iota << 3
-	Local3       Facility = iota << 3
-	Local4       Facility = iota << 3
-	Local5       Facility = iota << 3
-	Local6       Facility = iota << 3
-	Local7       Facility = iota << 3
-	NoneFacility Facility = -1
-	AllFacility  Facility = -2
+	Kern        Facility = iota << 3
+	User        Facility = iota << 3
+	Mail        Facility = iota << 3
+	Daemon      Facility = iota << 3
+	Auth        Facility = iota << 3
+	Syslog      Facility = iota << 3
+	Lpr         Facility = iota << 3
+	News        Facility = iota << 3
+	Uucp        Facility = iota << 3
+	Cron        Facility = iota << 3
+	AuthPriv    Facility = iota << 3
+	Ftp         Facility = iota << 3
+	Local0      Facility = iota << 3
+	Local1      Facility = iota << 3
+	Local2      Facility = iota << 3
+	Local3      Facility = iota << 3
+	Local4      Facility = iota << 3
+	Local5      Facility = iota << 3
+	Local6      Facility = iota << 3
+	Local7      Facility = iota << 3
+	AllFacility Facility = -2
 )
 
 var facilityOneOf = map[Facility]bool{
@@ -54,25 +60,42 @@ var facilityByName = map[string]Facility{
 	"local7": Local7, "*": AllFacility,
 }
 
-func FacilityParse(facility string) Facility {
-	// check facility,facility
-	if isContainOnlyDigit(facility) {
-		num, err := strconv.Atoi(facility)
-		if err != nil {
-			return NoneFacility
+func facilitiesCopy() []Facility {
+	return []Facility{User, Mail, Daemon, Auth, Syslog, Lpr, News, Uucp, Cron, AuthPriv, Ftp,
+		Local0, Local1, Local2, Local3, Local4, Local5, Local6, Local7}
+}
+
+func FacilityParse(line string) ([]Facility, error) {
+	parts := strings.Split(line, ",")
+	result := make([]Facility, 0)
+	for _, part := range parts {
+		if isContainOnlyDigit(part) {
+			num, err := strconv.Atoi(part)
+			if err != nil {
+				return nil, fmt.Errorf("%w: %s", ErrIllegalFacility, err)
+			}
+
+			facility := Facility(num)
+			if !facilityOneOf[facility] {
+				return nil, fmt.Errorf("%w: unknown num %d", ErrIllegalFacility, num)
+			}
+
+			result = append(result, facility)
+			continue
 		}
 
-		facility := Facility(num)
-		if facilityOneOf[facility] {
-			return facility
+		if facility, ok := facilityByName[part]; ok {
+			result = append(result, facility)
+		} else {
+			return nil, fmt.Errorf("%w: unknown %s", ErrIllegalFacility, part)
 		}
-
-		return NoneFacility
 	}
 
-	if fac, ok := facilityByName[facility]; ok {
-		return fac
+	for _, f := range result {
+		if f == AllFacility {
+			return facilitiesCopy(), nil
+		}
 	}
 
-	return NoneFacility
+	return result, nil
 }
